@@ -1,14 +1,9 @@
 /**
- * Learn more about light and dark modes:
- * https://docs.expo.dev/guides/color-schemes/
+ * The Konneqta palette in effect.
+ *
+ * Resolution order (mirrors the konneqta web app): the user's explicit
+ * light/dark choice if they made one, otherwise the OS colour scheme.
+ * Implemented in src/context/theme.tsx — this re-export keeps every existing
+ * `useTheme()` call site unchanged.
  */
-
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export function useTheme() {
-  const scheme = useColorScheme();
-  const theme = scheme === 'unspecified' ? 'light' : scheme;
-
-  return Colors[theme];
-}
+export { useTheme } from '@/context/theme';

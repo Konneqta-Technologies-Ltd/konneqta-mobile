@@ -1,0 +1,56 @@
+name: Mobile CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+# Cancel superseded runs on the same branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  EXPO_NO_TELEMETRY: 1
+
+# Least privilege — this workflow never needs the GITHUB_TOKEN
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Lint & Type-Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # This project uses npm (package-lock.json) — deterministic install
+      - name: Install dependencies
+        run: npm ci
+
+      # Typed routes (experiments.typedRoutes) live in git-ignored .expo/ —
+      # regenerate them so `tsc --noEmit` sees route types (per Expo docs)
+      - name: Generate Expo Router typed-route types
+        run: npx expo customize tsconfig.json
+
+      # Check 1: Lint
+      - name: Run lint
+        run: npm run lint
+
+      # Check 2: TypeScript
+      - name: Run type-check
+        run: npm run type-check
+
+      # Check 3: Framework & SDK dependency alignment
+      - name: Expo Doctor
+        run: npx expo-doctor
+
